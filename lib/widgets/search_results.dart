@@ -1,6 +1,8 @@
+//flutter imports:
 import 'package:flutter/material.dart';
+//Api imports:
 import 'package:flutter_movie_app/API/MovieAPI.dart';
-
+// widget imports:
 import '../screens/splash.dart';
 import 'movie_list.dart';
 
@@ -18,8 +20,8 @@ class SearchResults extends StatefulWidget {
 
 class _SearchResultsState extends State<SearchResults> {
   late var movies = widget.movies;
-  var page =1;
-  late ScrollController controller;
+  var page =1; //page number, for infinite scrolling
+  late ScrollController controller; //Scroll controller for infinite scrolling
 
 
 

@@ -1,5 +1,6 @@
+// flutter imports:
 import 'package:flutter/material.dart';
-
+//model imports:
 import '../models/Movie.dart';
 
 class MovieDisplay extends StatelessWidget {
@@ -10,6 +11,7 @@ class MovieDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+    //Dynamic height based on device size
     var height = MediaQuery.of(context).orientation == Orientation.portrait ? MediaQuery.of(context).size.height * 2/10: MediaQuery.of(context).size.height * 1/3;
 
     return Padding(

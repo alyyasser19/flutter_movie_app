@@ -1,10 +1,10 @@
-
+//flutter imports:
 import 'package:flutter/material.dart';
+//API imports:
 import 'package:flutter_movie_app/API/MovieAPI.dart';
+//Widget imports:
 import 'package:flutter_movie_app/screens/splash.dart';
 import 'package:flutter_movie_app/widgets/movie_list.dart';
-import 'package:tmdb_api/tmdb_api.dart';
-
 
 
 class Home extends StatefulWidget {
@@ -18,7 +18,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   late var movies =[];
-  bool loaded = false;
+  bool loaded = false; // for loading indicator
   var page = 0;
 
   late ScrollController controller;

@@ -1,6 +1,7 @@
+// flutter imports:
 import 'package:flutter/material.dart';
+// screen imports:
 import 'package:flutter_movie_app/screens/search.dart';
-
 import 'home.dart';
 
 class Tabs extends StatefulWidget {
@@ -30,7 +31,7 @@ class _TabsState extends State<Tabs> {
         'title': 'Trending Movies',
       },
       {
-        'page':  Search(),
+        'page':  const Search(),
         'title': 'Search',
       },
     ];

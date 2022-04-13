@@ -1,11 +1,12 @@
+//flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter_movie_app/widgets/movie_display.dart';
-
+//model imports:
 import '../models/Movie.dart';
 
 class MovieList extends StatelessWidget {
   final List movies;
-  final ScrollController controller;
+  final ScrollController controller; //scroll controller for infinite scrolling and updating content
 
   const MovieList({Key?key, required this.movies, required this.controller}) : super(key: key);
 

@@ -1,8 +1,12 @@
+//flutter imports
 import 'package:flutter/material.dart';
+//plugin imports
+import 'package:material_floating_search_bar/material_floating_search_bar.dart';
+// API imports
 import 'package:flutter_movie_app/API/MovieAPI.dart';
 import 'package:flutter_movie_app/API/user_preferences%20.dart';
+// widget imports
 import 'package:flutter_movie_app/screens/splash.dart';
-import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import '../widgets/search_results.dart';
 
 

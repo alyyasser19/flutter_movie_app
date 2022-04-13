@@ -1,4 +1,4 @@
-
+// screen imports
 import '../screens/home.dart';
 import '../screens/search.dart';
 import '../screens/tabs.dart';

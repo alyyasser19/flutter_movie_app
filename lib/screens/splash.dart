@@ -1,4 +1,6 @@
+//flutter imports
 import 'package:flutter/material.dart';
+//plugin imports
 import 'package:lottie/lottie.dart';
 
 class Splash extends StatelessWidget {

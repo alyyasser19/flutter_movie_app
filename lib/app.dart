@@ -1,4 +1,6 @@
+//flutter imports:
 import 'package:flutter/material.dart';
+//routes
 import 'package:flutter_movie_app/routes/route_generator.dart';
 
 
@@ -7,8 +9,6 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-
     return MaterialApp(
       title: 'Flutter Movie App',
       theme: ThemeData(
