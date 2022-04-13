@@ -24,6 +24,9 @@ class MovieDisplay extends StatelessWidget {
               Image.network(
                 movie.imageUrl,
                 height: height,
+                errorBuilder: (context, url, error) {
+                  return const Icon(Icons.error);
+                },
               ),
               Expanded(
                 child: Padding(
