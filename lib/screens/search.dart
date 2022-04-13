@@ -1,34 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_movie_app/API/MovieAPI.dart';
+import 'package:flutter_movie_app/API/user_preferences%20.dart';
 import 'package:flutter_movie_app/screens/splash.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
-import 'package:tmdb_api/tmdb_api.dart';
-
-import '../widgets/movie_list.dart';
 import '../widgets/search_results.dart';
 
 
 
 class Search extends StatefulWidget {
   static const routeName = '/search';
+
+  const Search({Key? key}) : super(key: key);
   @override
   _SearchState createState() => _SearchState();
 }
 
 class _SearchState extends State<Search> {
   bool isSearching = false;
-  late TMDB tmdb= TMDB(ApiKeys("apiKeyV3", "apiKeyV4"),);
-  static const historyLength = 5;
+  static const historyLength = 10;
   List<String> _searchHistory = [];
   late List<String> filteredSearchHistory;
   late String selectedTerm='';
   late var movies =[];
   bool loaded = false;
+  bool isEmpty = false;
+  bool searchCache = false;
 
   List<String> filterSearchTerms({
     required String filter,
   }) {
-    if (filter != null && filter.isNotEmpty) {
+    if (filter.isNotEmpty) {
       return _searchHistory.reversed
           .where((term) => term.startsWith(filter))
           .toList();
@@ -38,23 +39,24 @@ class _SearchState extends State<Search> {
   }
 
   void find() async{
-    await dotenv.load();
-    var apiKeyV3 = dotenv.env['API_KEY_V3'] ?? '';
-    var apiKeyV4 = dotenv.env['API_READ_V4'] ?? '';
-    final tmdbWithCustomLogs = TMDB(
-      ApiKeys(apiKeyV3, apiKeyV4),
-    );
 
-    var movieList = await tmdbWithCustomLogs.v3.search.queryMovies(selectedTerm);
+    var movieList = await MovieApi.findMovie(selectedTerm);
 
     setState(() {
-      tmdb = tmdbWithCustomLogs;
       loaded = true;
       movies = movieList["results"];
+      isEmpty = movieList["total_results"] == 0;
     });
+
+    if(isEmpty){
+      deleteSearchTerm(selectedTerm);
+    }
+
   }
 
-  void addSearchTerm(String term) {
+  void addSearchTerm(String term)async {
+    term.trim();
+
     if (_searchHistory.contains(term)) {
       putSearchTermFirst(term);
       return;
@@ -65,17 +67,36 @@ class _SearchState extends State<Search> {
       _searchHistory.removeRange(0, _searchHistory.length - historyLength);
     }
 
-    filteredSearchHistory = filterSearchTerms(filter: "null");
+    filteredSearchHistory = _searchHistory.reversed.toList();
+    UserPreferences.setSearchResults(_searchHistory);
   }
 
   void deleteSearchTerm(String term) {
+    term.trim();
     _searchHistory.removeWhere((t) => t == term);
-    filteredSearchHistory = filterSearchTerms(filter: "null");
+    filteredSearchHistory = _searchHistory.reversed.toList();
+    UserPreferences.setSearchResults(_searchHistory);
   }
 
   void putSearchTermFirst(String term) {
+    term.trim();
     deleteSearchTerm(term);
     addSearchTerm(term);
+  }
+
+  void fetchSearchHistory()async{
+    try{
+    _searchHistory = await UserPreferences.getSearchResults();
+    filteredSearchHistory = _searchHistory.reversed.toList();
+    }catch(e){
+      setState(() {
+        _searchHistory = [];
+        filteredSearchHistory = [];
+      });
+    }
+    setState(() {
+      searchCache = true;
+    });
   }
 
   late FloatingSearchBarController controller;
@@ -85,6 +106,8 @@ class _SearchState extends State<Search> {
     super.initState();
     controller = FloatingSearchBarController();
     filteredSearchHistory = filterSearchTerms(filter: "null");
+    fetchSearchHistory();
+
   }
 
   @override
@@ -95,18 +118,18 @@ class _SearchState extends State<Search> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return searchCache ? (Scaffold(
       body: FloatingSearchBar(
         controller: controller,
         body: FloatingSearchBarScrollNotifier(
-          child: SearchResults(selectedTerm: selectedTerm,  isSearching: isSearching,  movies: movies, loaded: loaded, tmdb: tmdb,),
+          child: SearchResults(selectedTerm: selectedTerm,  isSearching: isSearching,  movies: movies, loaded: loaded, isEmpty: isEmpty),
         ),
         transition: CircularFloatingSearchBarTransition(),
-        physics: BouncingScrollPhysics(),
-        title: Text(
-          'Search',
+        physics: const BouncingScrollPhysics(),
+        title:  Text(
+          selectedTerm=='' ? "Search" : selectedTerm,
         ),
-        hint: 'Search and find out...',
+        hint: 'Search and find your favorite movies...',
         actions: [
           FloatingSearchBarAction.searchToClear(),
         ],
@@ -131,8 +154,7 @@ class _SearchState extends State<Search> {
               elevation: 4,
               child: Builder(
                 builder: (context) {
-                  if (filteredSearchHistory.isEmpty &&
-                      controller.query.isEmpty) {
+                  if (filteredSearchHistory.isEmpty && controller.query.isEmpty) {
                     return Container(
                       height: 56,
                       width: double.infinity,
@@ -144,7 +166,8 @@ class _SearchState extends State<Search> {
                         style: Theme.of(context).textTheme.caption,
                       ),
                     );
-                  } else if (filteredSearchHistory.isEmpty) {
+                  }
+                  else if (filteredSearchHistory.isEmpty ) {
                     return ListTile(
                       title: Text(controller.query),
                       leading: const Icon(Icons.search),
@@ -156,35 +179,43 @@ class _SearchState extends State<Search> {
                         controller.close();
                       },
                     );
-                  } else {
+                  }
+                  else {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: filteredSearchHistory
                           .map(
-                            (term) => ListTile(
-                          title: Text(
-                            term,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          leading: const Icon(Icons.history),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              setState(() {
-                                deleteSearchTerm(term);
-                              });
-                            },
-                          ),
-                          onTap: () {
-                            setState(() {
-                              putSearchTermFirst(term);
-                              selectedTerm = term;
-                            });
-                            controller.close();
-                          },
-                        ),
-                      )
+                            (term)
+                            {
+                              return term=='' ? Container() : ListTile(
+                                        title: Text(
+                                          term,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        leading: const Icon(Icons.history),
+                                        trailing: IconButton(
+                                          icon: const Icon(Icons.clear),
+                                          onPressed: () {
+                                            setState(() {
+                                              deleteSearchTerm(term);
+                                              selectedTerm = '';
+                                            });
+                                          },
+                                        ),
+                                        onTap: () {
+                                          setState(() {
+                                            putSearchTermFirst(term);
+                                            setState(() {
+                                              isSearching = true;
+                                              selectedTerm = term;
+                                            });
+                                            find();
+                                          });
+                                          controller.close();
+                                        },
+                                      );
+                                    })
                           .toList(),
                     );
                   }
@@ -194,6 +225,6 @@ class _SearchState extends State<Search> {
           );
         },
       ),
-    );
+    )) : const Splash();
   }
 }

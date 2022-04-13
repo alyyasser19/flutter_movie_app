@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_movie_app/API/MovieAPI.dart';
 import 'package:flutter_movie_app/screens/splash.dart';
 import 'package:flutter_movie_app/widgets/movie_list.dart';
 import 'package:tmdb_api/tmdb_api.dart';
@@ -17,7 +17,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  late final TMDB _tmdb;
   late var movies =[];
   bool loaded = false;
   var page = 0;
@@ -25,19 +24,11 @@ class _HomeState extends State<Home> {
   late ScrollController controller;
 
   void loadTMDB() async{
-    await dotenv.load();
-    var apiKeyV3 = dotenv.env['API_KEY_V3'] ?? '';
-    var apiKeyV4 = dotenv.env['API_READ_V4'] ?? '';
-    final tmdbWithCustomLogs = TMDB(
-      ApiKeys(apiKeyV3, apiKeyV4),
-    );
 
-    var movieList = await tmdbWithCustomLogs.v3.trending.getTrending(
-      mediaType: MediaType.movie,
-    );
+
+    var movieList = await MovieApi.getTrendingMovies();
 
     setState(() {
-      _tmdb = tmdbWithCustomLogs;
       loaded = true;
       page= 1;
       movies = movieList["results"];
@@ -56,14 +47,11 @@ class _HomeState extends State<Home> {
       setState(() {
         ++page;
       });
-      await _tmdb.v3.trending.getTrending(
-        mediaType: MediaType.movie,
-        page: page,
-      ).then((value) {
+      var next=await MovieApi.getNextPage(page);
+
         setState(() {
-          movies.addAll(value["results"]);
+          movies.addAll(next["results"]);
         });
-      });
     }
   }
 

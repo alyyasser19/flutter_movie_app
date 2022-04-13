@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:tmdb_api/tmdb_api.dart';
+import 'package:flutter_movie_app/API/MovieAPI.dart';
 
 import '../screens/splash.dart';
 import 'movie_list.dart';
@@ -10,8 +9,8 @@ class SearchResults extends StatefulWidget {
   final bool isSearching;
   final bool loaded;
   final List movies;
-  final tmdb;
-  const SearchResults({Key ?key, required this.selectedTerm, required this.isSearching, required this.loaded, required this.movies, required this.tmdb}) : super(key: key);
+  final bool isEmpty;
+  const SearchResults({Key ?key, required this.selectedTerm, required this.isSearching, required this.loaded, required this.movies, required this.isEmpty}) : super(key: key);
 
   @override
   State<SearchResults> createState() => _SearchResultsState();
@@ -23,6 +22,8 @@ class _SearchResultsState extends State<SearchResults> {
   late ScrollController controller;
 
 
+
+  @override
   void initState()  {
     super.initState();
     controller = ScrollController()..addListener(handleScrolling);
@@ -33,14 +34,12 @@ class _SearchResultsState extends State<SearchResults> {
       setState(() {
         ++page;
       });
-      await widget.tmdb.v3.trending.getTrending(
-        mediaType: MediaType.movie,
-        page: page,
-      ).then((value) {
+       var movieList= await MovieApi.getNextPageSearch(page, widget.selectedTerm);
+
         setState(() {
-          movies.addAll(value["results"]);
+          movies.addAll(movieList['results']);
         });
-      });
+
     }
   }
 
@@ -52,6 +51,18 @@ class _SearchResultsState extends State<SearchResults> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.isSearching || widget.loaded ? (widget.loaded ? Container(child: MovieList(movies: movies, controller: controller,), margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.1)) : const Splash()) : Container() ;
+    if(widget.loaded) {
+      movies=widget.movies;
+    }
+    if(widget.isEmpty) {
+      return const Center(
+        child: Text("No results found"),
+      );
+    }
+    return widget.isSearching ?
+    (widget.loaded ?
+    Container(child: MovieList(movies: movies, controller: controller,), margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.07)) :
+    const Splash())
+        : Container() ;
   }
 }

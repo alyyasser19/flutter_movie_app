@@ -16,6 +16,9 @@ class MovieList extends StatelessWidget {
       itemCount: movies.length,
       controller: controller,
       itemBuilder: (context, index) {
+        if(movies[index]['poster_path'] == null || movies[index]['title'] == null || movies[index]['overview'] == null || movies[index]['release_date'] == null ) {
+          return Container();
+        }
         var movie=Movie(movies[index]);
         return MovieDisplay(movie);
       },

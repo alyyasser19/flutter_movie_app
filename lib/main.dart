@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_movie_app/API/MovieAPI.dart';
+import 'package:flutter_movie_app/API/user_preferences%20.dart';
+
 
 import 'app.dart';
 
 Future<void> main() async {
-  runApp(const ProviderScope(child: App()));
+  WidgetsFlutterBinding.ensureInitialized();
+  await UserPreferences.init();
+  await MovieApi.init();
+  runApp(const App());
 }
